@@ -17,7 +17,8 @@ export const userService = {
         const user = await prisma.user.create({
             data: {
                 ...userData,
-                password: hashPassword(userData.password)
+                password: hashPassword(userData.password),
+                emailVerified: false, // Mark email as verified upon creation
             }
         });
 
@@ -167,4 +168,42 @@ export const userService = {
         });
         return changeActiveUser;
     },
-};
+    async toggleVerified(email: string) {
+    const user = await prisma.user.findUnique({
+        where: {
+            email: email,
+        },
+        select: {
+            emailVerified: true,
+        },
+    });
+
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    const updatedUser = await prisma.user.update({
+        where: {
+            email: email,
+        },
+        data: {
+            emailVerified: !user.emailVerified,
+        },
+        omit: {
+            password: true,
+        },
+    });
+
+    return updatedUser;
+},
+    async deleteExpiredUnverifiedUsers() {
+    return prisma.user.deleteMany({
+        where: {
+            emailVerified: false,
+            verificationTokenExpiresAt: {
+                lt: new Date()
+            }
+        }
+    });
+}
+}

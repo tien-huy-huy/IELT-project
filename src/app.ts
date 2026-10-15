@@ -6,6 +6,9 @@ import profileRouter from "./routes/profile.route";
 import uploadRouter from "./routes/upload.route";
 import userRouter from "./routes/user.route";
 import adminRouter from "./routes/admin.route";
+import { connectRedis } from "./utils/redis";
+
+connectRedis();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;

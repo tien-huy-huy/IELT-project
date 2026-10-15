@@ -7,7 +7,7 @@ services:
       MYSQL_ROOT_PASSWORD: dev1012
       MYSQL_DATABASE: IELTS_Pratice
     ports:
-      - "3307:3306"
+      - "3310:3306"
     volumes:
       - db_data:/var/lib/mysql
   redis: 

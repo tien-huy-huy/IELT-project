@@ -1,12 +1,12 @@
 model AdminLog {
-  id      String @id @default(uuid())
-  adminId String
-  admin   User   @relation(fields: [adminId], references: [id])
-  action  String
-  details String @db.Text
+  id        String   @id @default(uuid())
+  adminId   String
+  action    String
+  details   String   @db.Text
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  admin     User     @relation(fields: [adminId], references: [id])
 
-  createdAt DateTime @default(now()) @db.Timestamp()
-  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp()
-
+  @@index([adminId], map: "adminLog_adminId_fkey")
   @@map("adminLog")
 }

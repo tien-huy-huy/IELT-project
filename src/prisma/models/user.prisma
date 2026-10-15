@@ -1,24 +1,21 @@
 model User {
-    id       String  @id @default(uuid())
-    email    String  @unique
-    password String?
-    name     String
-    role     Role    @default(USER)
-    avatar   String?
-    phone    String?
-    address  String? @db.Text
-    city     String?
-    district String?
-    ward     String?
+  id            String     @id @default(uuid())
+  email         String     @unique
+  password      String?
+  name          String
+  emailVerified Boolean    @default(false)
+  role          Role       @default(USER)
+  avatar        String?
+  phone         String?
+  address       String?    @db.Text
+  city          String?
+  district      String?
+  ward          String?
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now()) @db.Timestamp(0)
+  updatedAt     DateTime   @default(now()) @updatedAt @db.Timestamp(0)
+  deletedAt     DateTime?
+  adminLogs     AdminLog[]
 
-    adminLogs AdminLog[]
-
-    isActive Boolean @default(true)
-
-
-    createdAt DateTime @default(now()) @db.Timestamp()
-    updatedAt DateTime @default(now()) @updatedAt @db.Timestamp()
-    deletedAt DateTime?
-
-    @@map("users")
+  @@map("users")
 }

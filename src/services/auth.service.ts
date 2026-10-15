@@ -6,6 +6,7 @@ import { userService } from "./user.service";
 import { redisClient } from "../utils/redis";
 import { prisma } from "../utils/prisma";
 import { URLSearchParams } from "node:url";
+import { confirmVerificationToken, createVerificationToken, sendVerificationEmail, sendWelcomeEmail } from "./email.service";
 
 
 export const authService = {
@@ -15,6 +16,13 @@ export const authService = {
         if (existingUsser) {
             throw new Error("Email has been registered")
         }
+
+        const hashedPassword = hashPassword(userData.password)
+
+        const token = await createVerificationToken(userData);
+
+        await sendVerificationEmail(userData.email, token);
+
         const user = await userService.create(userData)
 
         if (!user) {
@@ -27,10 +35,14 @@ export const authService = {
         if (!user) {
             throw new Error("Not Found User")
         }
+        if (user.emailVerified === false) {
+            throw new Error("Email not verified")
+        }
         if (user.deletedAt !== null || !user.isActive) {
             throw new Error("Account has been inactive or disabled")
         }
-
+        console.log("BEFORE VERIFY");
+        
         if (!verifyPassword(password, user.password!)) {
             throw new Error("Password Wrong")
         }
@@ -270,5 +282,16 @@ export const authService = {
             accessToken: token.accessToken,
             refreshToken: token.refreshToken
         };
+    },
+    async verifyEmail(token: string) {
+        const PendingUser = await confirmVerificationToken(token);
+
+        if (!PendingUser) {
+            throw new Error("Invalid or expired token");
+        }
+
+        await userService.toggleVerified(PendingUser.email);
+
+        await sendWelcomeEmail(PendingUser.email, PendingUser.name);
     }
 }

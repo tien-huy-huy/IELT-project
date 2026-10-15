@@ -15,6 +15,7 @@ router.patch("/auth/forgot-password", authController.forgotPassword)
 router.get("/auth/google", authController.googleRedirect)
 router.get("/auth/google/callback", authController.googleCallback)
 router.post("/auth/google/login", authController.googleLogin);
+router.get("/auth/verify-email", authController.verifyEmail);
 
 router.post("/otp/send", authMiddleware, otpController.sendOtp)
 router.post("/otp/forgot-email", otpController.sendOtpByEmail)

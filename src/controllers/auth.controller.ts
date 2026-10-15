@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { authService } from "../services/auth.service";
 import { verifyOtp } from "../utils/otp";
 import { userService } from "../services/user.service";
+import { confirmVerificationToken, sendWelcomeEmail } from "../services/email.service";
+import { console } from "inspector/promises";
 
 export const authController = {
   register: async (req: Request, res: Response) => {
@@ -10,7 +12,6 @@ export const authController = {
       return res.json({
         success: true,
         message: "success",
-        data: user
       })
     } catch (error) {
       return res.status(400).json({
@@ -22,6 +23,7 @@ export const authController = {
   login: async (req: Request, res: Response) => {
     const { email, password } = req.body
     try {
+      console.log("1. Login controller");
       const result = await authService.login(email, password)
       return res.json({
         success: true,
@@ -40,6 +42,31 @@ export const authController = {
     return res.json({
       message: "Logout success"
     })
+  },
+  verifyEmail: async (req: Request, res: Response) => {
+    console.log("verifyEmail controller reached!");
+    const token = req.query.token as string;
+
+    if (!token) {
+      console.log("Token is missing in the request");
+      return res.status(400).json({
+        message: "Verification needed"
+      })
+    }
+    try {
+      await authService.verifyEmail(token);
+
+      return res.status(200).json({
+        message: "Email successfully verified. Account created!",
+      })
+
+    } catch (error) {
+      console.error("Error during email verification:", error);
+      return res.status(500).json({
+        message: error || "Internal server error"
+      });
+
+    }
   },
   refreshToken: async (req: Request, res: Response) => {
     try {
@@ -60,9 +87,9 @@ export const authController = {
     try {
       const isValid = await verifyOtp(req.user!.id, req.body.otp)
       if (!isValid) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: "OTP not valid or expired" 
+          message: "OTP not valid or expired"
         })
       }
       const password = await authService.changePassword(req.user!.id, req.body.password)
@@ -84,14 +111,14 @@ export const authController = {
       if (!userId) {
         return res.json({
           success: false,
-          message: "Cannot find email" 
+          message: "Cannot find email"
         })
       }
       const isValid = await verifyOtp(userId?.id as string, req.body.otp)
       if (!isValid) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: "OTP not valid or expired" 
+          message: "OTP not valid or expired"
         })
       }
       const password = await authService.forgotPassword(userId?.id as string, req.body.password)
@@ -108,7 +135,7 @@ export const authController = {
     }
   },
   googleRedirect: async (req: Request, res: Response) => {
-    const redirectTo = req.query.redirectTo as string 
+    const redirectTo = req.query.redirectTo as string
     const linkRedirect = await authService.googleRedirect(redirectTo)
     return res.redirect(linkRedirect)
   },
